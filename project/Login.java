@@ -10,15 +10,34 @@ package project;
  * @author louis
  */
 import java.awt.event.KeyEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.*;
 
 public class Login extends javax.swing.JFrame {
+    private Statement stmt;
     boolean passwordHide = true;
     /**
      * Creates new form Login
      */
     public Login() {
         initComponents();
+        try {
+            Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
+            JOptionPane.showMessageDialog(null, "Driver Loaded");
 
+            String url = "jdbc:ucanaccess://C:\\Users\\louis\\Desktop\\UCI_Java_Project.accdb";
+
+            Connection connection = DriverManager.getConnection(url);
+            JOptionPane.showMessageDialog(null, "Database Connected");
+
+            stmt = connection.createStatement();
+        } catch (Exception ex){
+            JOptionPane.showMessageDialog(null, "Error" + ex);
+        }
     }
 
     /**
@@ -157,7 +176,43 @@ public class Login extends javax.swing.JFrame {
     }
 
     private void btnSignInActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+        String studentNumber = txtStudentNumber.getText();
+        char[] passwordChar = txtPassword.getPassword();
+        String password;
+
+        StringBuilder sb = new StringBuilder();
+
+        for (char ch : passwordChar){
+            sb.append(ch);
+        }
+
+        password = sb.toString();
+
+        try {
+            System.out.println(1);
+            String QueryString = "SELECT * FROM Students WHERE Student_ID='" + studentNumber + "'and Password='" + password + "'";
+
+            ResultSet rset = stmt.executeQuery(QueryString);
+
+            if(rset.next() && studentNumber.equals(studentNumber) && password.equals(password)){
+                String id = rset.getString(1);
+                String passwordRset = rset.getString(2);
+                JOptionPane.showMessageDialog(null, "Welcome students nb : "+id);
+                Menu m = new Menu();
+                m.setVisible(true);
+                this.setVisible(false);
+
+            }else{
+                JOptionPane.showMessageDialog(null, "Wrong user or password");
+                txtStudentNumber.setText("");
+                txtPassword.setText("");
+                txtStudentNumber.requestFocus();
+            }
+            rset.close();
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Wrong user or password");
+        }
     }
 
     private void btnSignUpActionPerformed(java.awt.event.ActionEvent evt) {
@@ -167,10 +222,7 @@ public class Login extends javax.swing.JFrame {
     }
 
     private void txtStudentNumberKeyTyped(java.awt.event.KeyEvent evt) {
-        char c = evt.getKeyChar();
-        if (c <= '0' || c >= '9' || c != java.awt.event.KeyEvent.VK_BACK_SPACE || c != java.awt.event.KeyEvent.VK_DELETE) {
-            evt.consume();
-        }
+
     }
 
     /**

@@ -5,17 +5,37 @@
  */
 package project;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author louis
  */
 public class SignUp extends javax.swing.JFrame {
+    private Statement stmt;
     boolean passwordHide = true;
     /**
      * Creates new form SignUp
      */
     public SignUp() {
         initComponents();
+        try {
+            Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
+            JOptionPane.showMessageDialog(null, "Driver Loaded");
+
+            String url = "jdbc:ucanaccess://C:\\Users\\louis\\Desktop\\UCI_Java_Project.accdb";
+
+            Connection connection = DriverManager.getConnection(url);
+            JOptionPane.showMessageDialog(null, "Database Connected");
+
+            stmt = connection.createStatement();
+        } catch (Exception ex){
+            JOptionPane.showMessageDialog(null, "Error" + ex);
+        }
     }
 
     /**
@@ -151,7 +171,46 @@ public class SignUp extends javax.swing.JFrame {
     }
 
     private void btnSignUpActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+        String studentNumber = txtStudentNumber.getText();
+        char[] passwordChar = txtPassword.getPassword();
+        char[] confirmPasswordChar = txtConfirmPassword.getPassword();
+        String password;
+        String confirmPassword;
+
+        StringBuilder sb = new StringBuilder();
+
+        for (char ch: passwordChar) {
+            sb.append(ch);
+        }
+        password = sb.toString();
+
+
+        StringBuilder sb2 = new StringBuilder();
+
+        for (char ch1: confirmPasswordChar) {
+            sb2.append(ch1);
+        }
+        confirmPassword = sb2.toString();
+
+
+        if (!password.equals(confirmPassword)){
+            JOptionPane.showMessageDialog(null, password);
+            JOptionPane.showMessageDialog(null, confirmPassword);
+            JOptionPane.showMessageDialog(null, "Password are differents !");
+        } else {
+            try {
+                System.out.println(1);
+                String QueryString = "INSERT INTO Students(Student_ID, Password) VALUES('"+studentNumber+"','"+password+"')";
+                stmt.execute(QueryString);
+
+                JOptionPane.showMessageDialog(null, "User added");
+
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, "User already exists");
+            }
+        }
+
+
     }
 
     private void btnShowHidePasswordActionPerformed(java.awt.event.ActionEvent evt) {
@@ -167,10 +226,7 @@ public class SignUp extends javax.swing.JFrame {
     }
 
     private void txtStudentNumberKeyTyped(java.awt.event.KeyEvent evt) {
-        char c = evt.getKeyChar();
-        if (c <= '0' || c >= '9' || c != java.awt.event.KeyEvent.VK_BACK_SPACE || c != java.awt.event.KeyEvent.VK_DELETE) {
-            evt.consume();
-        }
+
     }
 
     /**
